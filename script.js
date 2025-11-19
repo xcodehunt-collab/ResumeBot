@@ -7,14 +7,19 @@ generateBtn.addEventListener("click", async () => {
     const output = document.getElementById("output");
     output.innerText = "Generating...";
 
-    const response = await fetch("http://localhost:3000/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: userInput, job: jobTitle })
-    });
+    try {
+        const response = await fetch("https://resumebot-api.onrender.com/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: userInput, job: jobTitle })
+        });
 
-    const data = await response.json();
-    output.innerText = data.resume;
+        const data = await response.json();
+        output.innerText = data.resume;
+    } catch (error) {
+        output.innerText = "Error generating resume. Please try again.";
+        console.error(error);
+    }
 });
 
 downloadBtn.addEventListener("click", () => {
