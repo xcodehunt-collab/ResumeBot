@@ -1,10 +1,14 @@
 // server.js
 import express from "express";
+import path from "path";
 import { GoogleAuth } from "google-auth-library";
 import { v1 } from "@google-cloud/aiplatform";
 
 const app = express();
 app.use(express.json());
+
+// Serve frontend (HTML, CSS, JS)
+app.use(express.static(path.join(process.cwd(), "public")));
 
 // ====== Environment Variables ======
 const projectId = process.env.GCP_PROJECT_ID;
@@ -13,7 +17,7 @@ const modelName = process.env.MODEL_NAME || "gemini-1.5-flash";
 const serviceAccountJSON = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
 if (!serviceAccountJSON || !projectId) {
-  console.error("Missing Google Cloud environment variables!");
+  console.error("⚠️ ERROR: Missing Google Cloud environment variables!");
   process.exit(1);
 }
 
@@ -25,12 +29,7 @@ const auth = new GoogleAuth({
 
 const client = new v1.PredictionServiceClient({ auth });
 
-// ====== Test Route ======
-app.get("/", (req, res) => {
-  res.send("ResumeBot with Vertex AI is running!");
-});
-
-// ====== Generate Text Route ======
+// ====== Generate Resume Route ======
 app.post("/api/generate", async (req, res) => {
   const prompt = req.body.prompt;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
@@ -39,15 +38,11 @@ app.post("/api/generate", async (req, res) => {
     const request = {
       endpoint: `projects/${projectId}/locations/${location}/publishers/google/models/${modelName}`,
       instances: [{ prompt }],
-      parameters: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      },
+      parameters: { temperature: 0.7, maxOutputTokens: 1024 },
     };
 
     const [response] = await client.predict(request);
 
-    // Extract text from response
     const text =
       response.predictions[0].content ||
       response.predictions[0].outputText ||
@@ -55,7 +50,7 @@ app.post("/api/generate", async (req, res) => {
 
     res.json({ text });
   } catch (err) {
-    console.error("Vertex AI generation error:", err);
+    console.error("Vertex AI Error:", err);
     res.status(500).json({ error: "Vertex AI generation failed" });
   }
 });
@@ -63,5 +58,5 @@ app.post("/api/generate", async (req, res) => {
 // ====== Start Server ======
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`ResumeBot backend running on port ${PORT}`)
+  console.log(`🚀 ResumeBot server running on port ${PORT}`)
 );
