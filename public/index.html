@@ -1,32 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ResumeBot - AI Resume Builder</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ResumeBot</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <nav>
-        <div class="logo">ResumeBot</div>
-        <ul>
-            <li><a href="#builder">Build Resume</a></li>
-        </ul>
-    </nav>
+<h1>ResumeBot - Powered by Google Vertex AI</h1>
 
-    <section class="builder" id="builder">
-        <h2>AI Resume Builder</h2>
-        <textarea id="userInput" placeholder="Enter skills, experience, education..."></textarea>
-        <input id="jobTitle" type="text" placeholder="Job Title (e.g., Web Developer)">
-        <button id="generateBtn">Generate Resume</button>
+<div class="container">
+  <input id="promptInput" type="text" placeholder="Enter your prompt" />
+  <button id="generateBtn">Generate Resume</button>
+  <div id="result"></div>
+</div>
 
-        <h3>Your Resume:</h3>
-        <pre id="output"></pre>
+<script>
+async function generateResume(prompt) {
+  try {
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
 
-        <button id="downloadPdf">Download PDF</button>
-    </section>
+    const data = await response.json();
+    document.getElementById("result").innerText = data.text;
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerText = "Error generating resume.";
+  }
+}
 
-    <script src="script.js"></script>
+document.getElementById("generateBtn").addEventListener("click", () => {
+  const prompt = document.getElementById("promptInput").value;
+  generateResume(prompt);
+});
+</script>
+
 </body>
 </html>
-
