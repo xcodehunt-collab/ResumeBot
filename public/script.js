@@ -1,23 +1,65 @@
-document.getElementById("generateBtn").onclick = async () => {
-    const userInput = document.getElementById("userInput").value;
-    const jobTitle = document.getElementById("jobTitle").value;
-    const output = document.getElementById("output");
+// DOM Elements
+const userInputEl = document.getElementById("userInput");
+const jobTitleEl = document.getElementById("jobTitle");
+const generateBtn = document.getElementById("generateBtn");
+const outputEl = document.getElementById("output");
+const downloadPdfBtn = document.getElementById("downloadPdf");
 
-    output.innerText = "⏳ Generating resume...";
+// Generate Resume Button Click
+generateBtn.addEventListener("click", async () => {
+    const userInput = userInputEl.value.trim();
+    const jobTitle = jobTitleEl.value.trim();
 
-    const response = await fetch("/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userInput, jobTitle })
-    });
+    if (!userInput || !jobTitle) {
+        outputEl.innerText = "❌ Please enter both job title and your experience/skills.";
+        return;
+    }
 
-    const data = await response.json();
-    output.innerText = data.resume;
-};
+    outputEl.innerText = "⏳ Generating resume...";
 
-document.getElementById("downloadPdf").onclick = () => {
+    try {
+        const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userInput, jobTitle })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            outputEl.innerText = "❌ Error: " + data.error;
+            console.error("Server Error:", data);
+            return;
+        }
+
+        if (!data.resume) {
+            outputEl.innerText = "❌ Resume generation failed. Check server logs.";
+            console.error("Unexpected Response:", data);
+            return;
+        }
+
+        // Display the generated resume
+        outputEl.innerText = data.resume;
+
+    } catch (err) {
+        outputEl.innerText = "❌ Network or server error. Check console.";
+        console.error(err);
+    }
+});
+
+// Download PDF Button Click
+downloadPdfBtn.addEventListener("click", () => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
-    pdf.text(document.getElementById("output").innerText, 10, 10);
+
+    const text = outputEl.innerText;
+    if (!text || text.trim() === "") {
+        alert("Please generate a resume first!");
+        return;
+    }
+
+    // Split long text into lines that fit the page
+    const lines = pdf.splitTextToSize(text, 180);
+    pdf.text(lines, 10, 10);
     pdf.save("resume.pdf");
-};
+});
