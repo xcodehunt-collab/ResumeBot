@@ -6,14 +6,12 @@ import { v1 } from "@google-cloud/aiplatform";
 
 const app = express();
 app.use(express.json());
-
-// Serve frontend static files
 app.use(express.static(path.join(process.cwd(), "public")));
 
 // ===== Environment Variables =====
 const projectId = process.env.GCP_PROJECT_ID;
 const location = process.env.GCP_LOCATION || "us-central1";
-const modelName = process.env.MODEL_NAME || "gemini-1.5-flash";
+const modelName = process.env.MODEL_NAME || "gemini-1.5-chat";
 const serviceAccountJSON = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
 if (!serviceAccountJSON || !projectId) {
@@ -33,18 +31,12 @@ const client = new v1.PredictionServiceClient({ auth });
 function extractText(prediction) {
   if (!prediction) return "No response from Vertex AI.";
 
-  // Common possible fields
   if (prediction.content) return prediction.content;
   if (prediction.outputText) return prediction.outputText;
   if (prediction.text) return prediction.text;
-
-  // Gemini models often return candidates array
   if (prediction.candidates?.[0]?.content) return prediction.candidates[0].content;
-
-  // Some models return outputs array
   if (prediction.outputs?.[0]?.text) return prediction.outputs[0].text;
 
-  // Fallback to full JSON
   return JSON.stringify(prediction);
 }
 
@@ -62,7 +54,6 @@ app.post("/api/generate", async (req, res) => {
 
     const [response] = await client.predict(request);
 
-    // Log full response for debugging
     console.log("Vertex AI Full Response:", JSON.stringify(response, null, 2));
 
     const prediction = response.predictions?.[0];
