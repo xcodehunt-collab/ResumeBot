@@ -7,7 +7,7 @@ import { v1 } from "@google-cloud/aiplatform";
 const app = express();
 app.use(express.json());
 
-// Serve static frontend files
+// Serve frontend static files
 app.use(express.static(path.join(process.cwd(), "public")));
 
 // ===== Environment Variables =====
@@ -29,7 +29,26 @@ const auth = new GoogleAuth({
 
 const client = new v1.PredictionServiceClient({ auth });
 
-// ===== Generate Resume Route =====
+// ===== Helper to extract generated text =====
+function extractText(prediction) {
+  if (!prediction) return "No response from Vertex AI.";
+
+  // Common possible fields
+  if (prediction.content) return prediction.content;
+  if (prediction.outputText) return prediction.outputText;
+  if (prediction.text) return prediction.text;
+
+  // Gemini models often return candidates array
+  if (prediction.candidates?.[0]?.content) return prediction.candidates[0].content;
+
+  // Some models return outputs array
+  if (prediction.outputs?.[0]?.text) return prediction.outputs[0].text;
+
+  // Fallback to full JSON
+  return JSON.stringify(prediction);
+}
+
+// ===== Generate Resume Endpoint =====
 app.post("/api/generate", async (req, res) => {
   const prompt = req.body.prompt;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
@@ -43,17 +62,11 @@ app.post("/api/generate", async (req, res) => {
 
     const [response] = await client.predict(request);
 
-    console.log("Vertex AI Raw Response:", JSON.stringify(response, null, 2));
+    // Log full response for debugging
+    console.log("Vertex AI Full Response:", JSON.stringify(response, null, 2));
 
-    // Safely extract the generated text
-    let text = "No response from Vertex AI.";
-    if (response.predictions?.[0]?.content) {
-      text = response.predictions[0].content;
-    } else if (response.predictions?.[0]?.outputText) {
-      text = response.predictions[0].outputText;
-    } else if (response.predictions?.[0]?.outputs?.[0]?.text) {
-      text = response.predictions[0].outputs[0].text;
-    }
+    const prediction = response.predictions?.[0];
+    const text = extractText(prediction);
 
     res.json({ text });
   } catch (err) {
