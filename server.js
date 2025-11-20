@@ -1,54 +1,67 @@
+// server.js
 import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
+import { GoogleAuth } from "google-auth-library";
+import { v1 } from "@google-cloud/aiplatform";
 
-dotenv.config();
 const app = express();
 app.use(express.json());
-app.use(express.static("public"));
 
-app.post("/generate", async (req, res) => {
-    const { userInput, jobTitle } = req.body;
+// ====== Environment Variables ======
+const projectId = process.env.GCP_PROJECT_ID;
+const location = process.env.GCP_LOCATION || "us-central1";
+const modelName = process.env.MODEL_NAME || "gemini-1.5-flash";
+const serviceAccountJSON = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
-    if (!userInput || !jobTitle) {
-        return res.status(400).send({ error: "Job title and user input required" });
-    }
+if (!serviceAccountJSON || !projectId) {
+  console.error("Missing Google Cloud environment variables!");
+  process.exit(1);
+}
 
-    try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                    { role: "system", content: "You are an expert resume writer." },
-                    { role: "user", content: `Create a clean, professional, ATS-friendly resume for the role: ${jobTitle}. Include user's info: ${userInput}` }
-                ],
-                temperature: 0.7
-            })
-        });
-
-        const data = await response.json();
-
-        console.log("Raw OpenAI Response:", JSON.stringify(data, null, 2));
-
-        if (!data.choices || !data.choices[0] || !data.choices[0].message?.content) {
-            return res.status(500).send({
-                error: "OpenAI response missing content",
-                raw: data
-            });
-        }
-
-        res.send({ resume: data.choices[0].message.content });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ error: "Server error", message: err.message });
-    }
+// ====== Google Auth & Vertex AI Client ======
+const auth = new GoogleAuth({
+  credentials: JSON.parse(serviceAccountJSON),
+  scopes: "https://www.googleapis.com/auth/cloud-platform",
 });
 
+const client = new v1.PredictionServiceClient({ auth });
+
+// ====== Test Route ======
+app.get("/", (req, res) => {
+  res.send("ResumeBot with Vertex AI is running!");
+});
+
+// ====== Generate Text Route ======
+app.post("/api/generate", async (req, res) => {
+  const prompt = req.body.prompt;
+  if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+
+  try {
+    const request = {
+      endpoint: `projects/${projectId}/locations/${location}/publishers/google/models/${modelName}`,
+      instances: [{ prompt }],
+      parameters: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+      },
+    };
+
+    const [response] = await client.predict(request);
+
+    // Extract text from response
+    const text =
+      response.predictions[0].content ||
+      response.predictions[0].outputText ||
+      "No response from Vertex AI.";
+
+    res.json({ text });
+  } catch (err) {
+    console.error("Vertex AI generation error:", err);
+    res.status(500).json({ error: "Vertex AI generation failed" });
+  }
+});
+
+// ====== Start Server ======
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`ResumeBot backend running on port ${PORT}`)
+);
