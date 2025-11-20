@@ -1,14 +1,3 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-import path from "path";
-
-dotenv.config();
-const app = express();
-
-app.use(express.json());
-app.use(express.static("public"));
-
 app.post("/generate", async (req, res) => {
     const { userInput, jobTitle } = req.body;
 
@@ -20,20 +9,33 @@ app.post("/generate", async (req, res) => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "gpt-4.1",
+                model: "gpt-4o-mini",
                 messages: [
                     { role: "system", content: "You are an expert resume writer." },
-                    { role: "user", content: `Create a clean, ATS-friendly resume for the role: ${jobTitle}. User details: ${userInput}` }
+                    { role: "user", content: `Write a professional ATS-friendly resume for: ${jobTitle}. User info: ${userInput}` }
                 ]
             })
         });
 
         const data = await response.json();
-        res.send({ resume: data.choices[0].message.content });
 
-    } catch (err) {
-        res.status(500).send({ error: "AI generation failed", details: err.message });
+        console.log("OpenAI Response:", data);  // <-- IMPORTANT FOR DEBUGGING
+
+        if (!data.choices || !data.choices[0]?.message?.content) {
+            return res.status(500).send({
+                error: "OpenAI response missing content",
+                raw: data
+            });
+        }
+
+        const result = data.choices[0].message.content;
+
+        res.send({ resume: result });
+
+    } catch (error) {
+        res.status(500).send({
+            error: "Server error",
+            message: error.message
+        });
     }
 });
-
-app.listen(3000, () => console.log("Server running on port 3000"));
