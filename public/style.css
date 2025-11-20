@@ -1,37 +1,39 @@
 body {
-  background: #f4f4f4;
   font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 40px;
-}
-
-h1 {
-  margin-bottom: 30px;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
 .container {
-  max-width: 500px;
-  margin: auto;
-  background: white;
-  padding: 20px;
+  background: #fff;
+  padding: 2rem;
   border-radius: 10px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-#promptInput {
-  width: 90%;
-  padding: 10px;
-  margin-bottom: 10px;
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
 }
 
-#generateBtn {
-  padding: 10px 20px;
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-#result {
-  margin-top: 20px;
-  background: #eee;
-  padding: 15px;
+pre {
+  background: #f5f5f5;
+  padding: 1rem;
   border-radius: 5px;
-  min-height: 80px;
+  white-space: pre-wrap;
+  margin-top: 1rem;
 }
