@@ -7,21 +7,21 @@ import { v1 } from "@google-cloud/aiplatform";
 const app = express();
 app.use(express.json());
 
-// Serve frontend (HTML, CSS, JS)
+// Serve static frontend files
 app.use(express.static(path.join(process.cwd(), "public")));
 
-// ====== Environment Variables ======
+// ===== Environment Variables =====
 const projectId = process.env.GCP_PROJECT_ID;
 const location = process.env.GCP_LOCATION || "us-central1";
 const modelName = process.env.MODEL_NAME || "gemini-1.5-flash";
 const serviceAccountJSON = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
 if (!serviceAccountJSON || !projectId) {
-  console.error("⚠️ ERROR: Missing Google Cloud environment variables!");
+  console.error("⚠️ Missing Google Cloud environment variables!");
   process.exit(1);
 }
 
-// ====== Google Auth & Vertex AI Client ======
+// ===== Google Auth & Vertex AI Client =====
 const auth = new GoogleAuth({
   credentials: JSON.parse(serviceAccountJSON),
   scopes: "https://www.googleapis.com/auth/cloud-platform",
@@ -29,7 +29,7 @@ const auth = new GoogleAuth({
 
 const client = new v1.PredictionServiceClient({ auth });
 
-// ====== Generate Resume Route ======
+// ===== Generate Resume Route =====
 app.post("/api/generate", async (req, res) => {
   const prompt = req.body.prompt;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
@@ -43,10 +43,17 @@ app.post("/api/generate", async (req, res) => {
 
     const [response] = await client.predict(request);
 
-    const text =
-      response.predictions[0].content ||
-      response.predictions[0].outputText ||
-      "No response from Vertex AI.";
+    console.log("Vertex AI Raw Response:", JSON.stringify(response, null, 2));
+
+    // Safely extract the generated text
+    let text = "No response from Vertex AI.";
+    if (response.predictions?.[0]?.content) {
+      text = response.predictions[0].content;
+    } else if (response.predictions?.[0]?.outputText) {
+      text = response.predictions[0].outputText;
+    } else if (response.predictions?.[0]?.outputs?.[0]?.text) {
+      text = response.predictions[0].outputs[0].text;
+    }
 
     res.json({ text });
   } catch (err) {
@@ -55,8 +62,8 @@ app.post("/api/generate", async (req, res) => {
   }
 });
 
-// ====== Start Server ======
+// ===== Start Server =====
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`🚀 ResumeBot server running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`🚀 ResumeBot server running on port ${PORT}`);
+});
