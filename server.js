@@ -4,12 +4,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const app = express();
-
-// Serve frontend
-app.use(express.static("public"));
 app.use(express.json());
+app.use(express.static("public"));
 
-// POST /generate endpoint
 app.post("/generate", async (req, res) => {
     const { userInput, jobTitle } = req.body;
 
@@ -18,7 +15,6 @@ app.post("/generate", async (req, res) => {
     }
 
     try {
-        // Call OpenAI API
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -28,8 +24,8 @@ app.post("/generate", async (req, res) => {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [
-                    { role: "system", content: "You are a professional resume writer." },
-                    { role: "user", content: `Create an ATS-friendly, professional resume for the role: ${jobTitle}. User details: ${userInput}` }
+                    { role: "system", content: "You are an expert resume writer." },
+                    { role: "user", content: `Create a clean, professional, ATS-friendly resume for the role: ${jobTitle}. Include user's info: ${userInput}` }
                 ],
                 temperature: 0.7
             })
@@ -37,10 +33,8 @@ app.post("/generate", async (req, res) => {
 
         const data = await response.json();
 
-        // DEBUG LOG
-        console.log("OpenAI Response:", JSON.stringify(data, null, 2));
+        console.log("Raw OpenAI Response:", JSON.stringify(data, null, 2));
 
-        // Validate response
         if (!data.choices || !data.choices[0] || !data.choices[0].message?.content) {
             return res.status(500).send({
                 error: "OpenAI response missing content",
@@ -48,7 +42,6 @@ app.post("/generate", async (req, res) => {
             });
         }
 
-        // Send the generated resume to frontend
         res.send({ resume: data.choices[0].message.content });
 
     } catch (err) {
@@ -57,6 +50,5 @@ app.post("/generate", async (req, res) => {
     }
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
