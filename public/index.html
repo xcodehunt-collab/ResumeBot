@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ResumeBot - AI Resume Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<nav>
+    <div class="logo">ResumeBot</div>
+    <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#builder">Build Resume</a></li>
+    </ul>
+</nav>
+
+<section class="hero">
+    <h1>Build Your Perfect Resume Instantly with AI</h1>
+    <p>ATS-friendly, professional resumes tailored for your dream job.</p>
+    <a href="#builder" class="btn">Create Your Resume Now</a>
+</section>
+
+<section id="features" class="features">
+    <h2>Features</h2>
+    <ul>
+        <li>AI-powered resume suggestions</li>
+        <li>ATS-friendly formatting</li>
+        <li>PDF download</li>
+        <li>Multiple templates</li>
+    </ul>
+</section>
+
+<section id="builder" class="builder">
+    <h2>AI Resume Builder</h2>
+    <textarea id="userInput" placeholder="Enter skills, experience, education..."></textarea>
+    <input id="jobTitle" type="text" placeholder="Job Title (e.g., Web Developer)">
+    <button id="generateBtn">Generate Resume</button>
+
+    <h3>Your Resume:</h3>
+    <pre id="output"></pre>
+
+    <button id="downloadPdf">Download PDF</button>
+</section>
+
+<section id="pricing" class="pricing">
+    <h2>Pricing</h2>
+    <div class="plans">
+        <div class="plan"><h3>Free</h3><p>1 resume / month</p><p>$0</p></div>
+        <div class="plan"><h3>Pro</h3><p>Unlimited resumes</p><p>$9 / month</p></div>
+        <div class="plan"><h3>Premium</h3><p>Lifetime access</p><p>$49</p></div>
+    </div>
+</section>
+
+<footer><p>© 2025 ResumeBot</p></footer>
+
+<script src="script.js"></script>
+</body>
+</html>
