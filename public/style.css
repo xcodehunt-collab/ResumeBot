@@ -1,8 +1,37 @@
-body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-nav { background: #111; color: #fff; padding: 15px; display: flex; justify-content: space-between; }
-nav ul { list-style: none; display: flex; gap: 15px; }
-nav a { color: #fff; text-decoration: none; }
-.builder { padding: 50px; }
-textarea, input { width: 100%; padding: 10px; margin-bottom: 10px; }
-#output { background: #f1f1f1; padding: 15px; min-height: 200px; white-space: pre-wrap; }
-button { padding: 10px 20px; cursor: pointer; }
+body {
+  background: #f4f4f4;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 40px;
+}
+
+h1 {
+  margin-bottom: 30px;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#promptInput {
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+#generateBtn {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 20px;
+  background: #eee;
+  padding: 15px;
+  border-radius: 5px;
+  min-height: 80px;
+}
