@@ -1,53 +1,34 @@
-const userInputEl = document.getElementById("userInput");
-const jobTitleEl = document.getElementById("jobTitle");
-const generateBtn = document.getElementById("generateBtn");
-const outputEl = document.getElementById("output");
-const downloadPdfBtn = document.getElementById("downloadPdf");
+<script>
+async function generateResume(prompt) {
+  try {
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    });
 
-generateBtn.addEventListener("click", async () => {
-    const userInput = userInputEl.value.trim();
-    const jobTitle = jobTitleEl.value.trim();
+    const data = await response.json();
 
-    if (!userInput || !jobTitle) {
-        outputEl.innerText = "❌ Enter both job title and user details.";
-        return;
+    if (data.text) {
+      document.getElementById("result").innerText = data.text;
+    } else {
+      document.getElementById("result").innerText =
+        "No response from Vertex AI.";
     }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerText =
+      "Error generating resume.";
+  }
+}
 
-    outputEl.innerText = "⏳ Generating resume...";
-
-    try {
-        const response = await fetch("/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userInput, jobTitle })
-        });
-
-        const data = await response.json();
-
-        if (data.error) {
-            outputEl.innerText = "❌ Error: " + data.error;
-            console.error(data);
-            return;
-        }
-
-        outputEl.innerText = data.resume;
-    } catch (err) {
-        outputEl.innerText = "❌ Network or server error";
-        console.error(err);
-    }
+// Example usage
+document.getElementById("generateBtn").addEventListener("click", () => {
+  const prompt = document.getElementById("promptInput").value;
+  generateResume(prompt);
 });
+</script>
 
-downloadPdfBtn.addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-    const text = outputEl.innerText;
-
-    if (!text) {
-        alert("Generate resume first!");
-        return;
-    }
-
-    const lines = pdf.splitTextToSize(text, 180);
-    pdf.text(lines, 10, 10);
-    pdf.save("resume.pdf");
-});
+<input id="promptInput" type="text" placeholder="Enter your prompt" />
+<button id="generateBtn">Generate Resume</button>
+<div id="result"></div>
