@@ -1,42 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ResumeBot</title>
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeBot</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<h1>ResumeBot - Powered by Google Vertex AI</h1>
+  <div class="container">
+    <h1>ResumeBot</h1>
+    <textarea id="prompt" placeholder="Type your resume request here..."></textarea>
+    <button id="generateBtn">Generate Resume</button>
+    <pre id="result"></pre>
+  </div>
 
-<div class="container">
-  <input id="promptInput" type="text" placeholder="Enter your prompt" />
-  <button id="generateBtn">Generate Resume</button>
-  <div id="result"></div>
-</div>
-
-<script>
-async function generateResume(prompt) {
-  try {
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await response.json();
-    document.getElementById("result").innerText = data.text;
-  } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerText = "Error generating resume.";
-  }
-}
-
-document.getElementById("generateBtn").addEventListener("click", () => {
-  const prompt = document.getElementById("promptInput").value;
-  generateResume(prompt);
-});
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
